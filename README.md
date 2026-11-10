@@ -37,6 +37,10 @@ version (empty for the newest release) and pick the track. Promoting the
 installer marks that release Latest. Installed clients never downgrade, so
 promoting an older version to `updater` only holds newer ones back.
 
+Each promote then deletes older releases (and their tags). Only the version
+in `updater/latest.yml`, the Latest release and the newest release are kept,
+so with `AUTO_PROMOTE` set to `both` the releases page shows just one.
+
 Clients older than 0.3.5 don't read `updater/latest.yml` yet and follow the
 Latest release, so promote 0.3.5 to `installer` (or `both`) once to bring them
 onto the new updater.
