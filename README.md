@@ -25,7 +25,7 @@ There are two release tracks, moved separately:
 
 The client's `npm run release` (run automatically for each new version on its
 `main` by `npm run release:watch`) pushes a branch `release-<version>` with
-`Yazanaki-Client-Setup-<version>.exe`, its `.blockmap` and `latest.yml` in
+`Yazanaki-Client-Setup-<version>.exe` and `latest.yml` in
 `installer/`. The *Stage release* workflow then creates release `v<version>`
 with them (not marked Latest), deletes the branch and promotes the version to
 the track in the `AUTO_PROMOTE` repository variable (Settings > Secrets and
