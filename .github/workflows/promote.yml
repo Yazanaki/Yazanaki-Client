@@ -9,6 +9,8 @@
 # Stage release calls it for the AUTO_PROMOTE track of every new version.
 # Installed clients never downgrade: promoting an older version to updater
 # only stops newer ones from going out.
+# After promoting, older releases are deleted: only the updater's version,
+# the Latest release and the newest release stay on the releases page.
 name: Promote
 
 on:
@@ -92,3 +94,21 @@ jobs:
         run: |
           gh release edit "v$V" --latest
           echo "The installer download now gives out **$V**." >> "$GITHUB_STEP_SUMMARY"
+      - name: Delete older releases
+        # Keeps only what is in use: the version installed clients update to
+        # (updater/latest.yml), the release behind the download link (Latest)
+        # and the newest release. Every other vX.Y.Z release and its tag go.
+        run: |
+          git pull -q origin main
+          keep=" v$(sed -n 's/^version: //p' updater/latest.yml 2>/dev/null) "
+          keep+=" $(gh release view --json tagName --jq .tagName 2>/dev/null) "
+          all=$(gh release list --exclude-drafts --limit 200 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))] | sort_by(.createdAt) | .[].tagName')
+          keep+=" $(echo "$all" | tail -n 1) "
+          echo "Keeping:$keep"
+          for tag in $all; do
+            case "$keep" in *" $tag "*) continue;; esac
+            echo "Deleting $tag"
+            gh release delete "$tag" --yes --cleanup-tag
+            echo "Deleted old release $tag." >> "$GITHUB_STEP_SUMMARY"
+          done
