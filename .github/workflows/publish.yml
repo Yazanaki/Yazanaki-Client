@@ -1,7 +1,7 @@
 # Stages a new version of the Yazanaki Client.
 # The client's `npm run release` (or `npm run release:watch`) pushes a branch
-# release-<version> with Yazanaki-Client-Setup-<version>.exe, its .blockmap
-# and latest.yml in installer/. This creates release v<version> with them
+# release-<version> with Yazanaki-Client-Setup-<version>.exe and latest.yml
+# in installer/. This creates release v<version> with them
 # attached, NOT marked Latest, so the installer download doesn't move. Then it
 # promotes the version to the track(s) in the AUTO_PROMOTE repository variable
 # (default "updater": installed clients update right away; "installer",
@@ -41,7 +41,7 @@ jobs:
             echo "::error::Branch $GITHUB_REF_NAME is not release-X.Y.Z"; exit 1
           fi
           exe="installer/Yazanaki-Client-Setup-$version.exe"
-          for f in "$exe" "$exe.blockmap" installer/latest.yml; do
+          for f in "$exe" installer/latest.yml; do
             [ -f "$f" ] || { echo "::error::$f is missing"; exit 1; }
           done
           grep -qx "version: $version" installer/latest.yml || { echo "::error::installer/latest.yml is not for $version"; exit 1; }
@@ -54,7 +54,7 @@ jobs:
           EXE: ${{ steps.find.outputs.exe }}
           SHA: ${{ steps.find.outputs.sha }}
         run: |
-          files=("$EXE" "$EXE.blockmap" installer/latest.yml)
+          files=("$EXE" installer/latest.yml)
           if gh release view "v$VERSION" >/dev/null 2>&1; then
             # A re-push of the same version replaces its files.
             gh release upload "v$VERSION" "${files[@]}" --clobber
