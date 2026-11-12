@@ -2,10 +2,11 @@
 # The client's `npm run release` (or `npm run release:watch`) pushes a branch
 # release-<version> with Yazanaki-Client-Setup-<version>.exe and latest.yml
 # in installer/. This creates release v<version> with them
-# attached, NOT marked Latest, so the installer download doesn't move. Then it
-# promotes the version to the track(s) in the AUTO_PROMOTE repository variable
-# (default "updater": installed clients update right away; "installer",
-# "both" or "none" also work) and deletes the branch.
+# attached, NOT marked Latest yet. Then it promotes the version to the track(s)
+# in the AUTO_PROMOTE repository variable (default "both": installed clients
+# update right away AND the download link gives it out, so the older releases
+# get deleted; "updater", "installer" or "none" also work) and deletes the
+# branch.
 #
 # Two tracks, moved separately by the Promote workflow:
 #   updater   - updater/latest.yml on main, which installed clients read.
@@ -76,8 +77,8 @@ jobs:
 
   promote:
     needs: stage
-    if: (vars.AUTO_PROMOTE || 'updater') != 'none'
+    if: (vars.AUTO_PROMOTE || 'both') != 'none'
     uses: ./.github/workflows/promote.yml
     with:
       version: ${{ needs.stage.outputs.version }}
-      track: ${{ vars.AUTO_PROMOTE || 'updater' }}
+      track: ${{ vars.AUTO_PROMOTE || 'both' }}
