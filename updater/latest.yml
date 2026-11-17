@@ -1,8 +1,8 @@
-version: 0.16.10
+version: 0.16.11
 files:
-  - url: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.16.10/Yazanaki-Client-Setup-0.16.10.exe
-    sha512: Nv2ldKlvDrOqrHDTPqD2j57I4SVrCirn2sKwBDzA8h3iITPpUdRKq9jA4iDrPRSbO1aVOacobgeIJKqaLWvKsQ==
-path: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.16.10/Yazanaki-Client-Setup-0.16.10.exe
-sha512: Nv2ldKlvDrOqrHDTPqD2j57I4SVrCirn2sKwBDzA8h3iITPpUdRKq9jA4iDrPRSbO1aVOacobgeIJKqaLWvKsQ==
-releaseDate: '2026-11-16T08:48:21.500Z'
-yazanakiSignature: AbZosdSVabO6JeqcUxTfy18ITkQKLvUnheGoubsi08KwqK8SxHe2ezMwLKKW9PXcEr6OdoPwfKx9eCM9D64ICg==
+  - url: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.16.11/Yazanaki-Client-Setup-0.16.11.exe
+    sha512: jlplfWNcpGHUHEX3xTF0NyXCIxvfPnM0qAdjdSSYYlECSxiRIaYzNiKTIWZCFBVsZug9GHSa9JALzJk/DOGIOg==
+path: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.16.11/Yazanaki-Client-Setup-0.16.11.exe
+sha512: jlplfWNcpGHUHEX3xTF0NyXCIxvfPnM0qAdjdSSYYlECSxiRIaYzNiKTIWZCFBVsZug9GHSa9JALzJk/DOGIOg==
+releaseDate: '2026-11-17T13:57:33.985Z'
+yazanakiSignature: gS7i8b94DC7FFMmYJSeFk8e6uG6hfjW8T0IkhahvPFjXZtRUhqlPPRzLCwCpzAx+eB0+0I6hiMFnqYjY6ie5Ag==
