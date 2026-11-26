@@ -1,8 +1,8 @@
-version: 0.19.7
+version: 0.19.8
 files:
-  - url: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.7/Yazanaki-Client-Setup.exe
-    sha512: J9NyWAw3uHF7R6wIvJGU82gPU1+ou9lETsmHsOE0AHGAv83UQQGHMliQef43bDfD4o58XOQ1nI2b3AiWbcximA==
-path: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.7/Yazanaki-Client-Setup.exe
-sha512: J9NyWAw3uHF7R6wIvJGU82gPU1+ou9lETsmHsOE0AHGAv83UQQGHMliQef43bDfD4o58XOQ1nI2b3AiWbcximA==
-releaseDate: '2026-11-26T07:33:44.215Z'
-yazanakiSignature: toXbqTmBlQnGCQiphOOwc4FUMobRFJydqeP+Gcpirv0A9+R8QCpRlqcHj6/XX78YzYPimrgQU//drY9nx2jOCQ==
+  - url: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.8/Yazanaki-Client-Setup.exe
+    sha512: OR76SU/PNCF6dgbmVxQZsgRPWaLh2+bb2ydsC805zivfOhlyqdM23gjN3hJ2wPRt6pp1Yn9JM/UFAM1A+0GBXA==
+path: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.8/Yazanaki-Client-Setup.exe
+sha512: OR76SU/PNCF6dgbmVxQZsgRPWaLh2+bb2ydsC805zivfOhlyqdM23gjN3hJ2wPRt6pp1Yn9JM/UFAM1A+0GBXA==
+releaseDate: '2026-11-26T07:59:51.525Z'
+yazanakiSignature: Ca81VNCLBv1xCfciMnM4k37RmKXUeAM61w0vDSl9T/BLUc3YTeVKIbryGbXoJX89yT50cd2KEnroFY1d+3B3CA==
