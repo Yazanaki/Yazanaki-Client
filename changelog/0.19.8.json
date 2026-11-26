@@ -1,0 +1,15 @@
+{
+  "version": "0.19.8",
+  "date": "2026-11-26",
+  "summary": "The client now has the gold Yazanaki emblem as its icon on the taskbar, desktop shortcut and installer.",
+  "changes": [
+    {
+      "type": "launcher",
+      "title": "Gold emblem app icon",
+      "points": [
+        "The app icon is now the transparent gold emblem instead of the black emblem on a dark square.",
+        "Shows on the window, taskbar, desktop shortcut and installer, and stays sharp at every size."
+      ]
+    }
+  ]
+}
