@@ -67,6 +67,22 @@ jobs:
           gh release view "v$v" >/dev/null || { echo "::error::There is no release v$v"; exit 1; }
           case "$TRACK" in installer|updater|both) ;; *) echo "::error::Unknown track $TRACK"; exit 1;; esac
           echo "version=$v" >> "$GITHUB_OUTPUT"
+      - name: One installer per release (Yazanaki-Client-Setup.exe)
+        # Releases staged before the installer lost its version in the name
+        # get the unversioned copy and a latest.yml pointing at it.
+        env:
+          V: ${{ steps.rel.outputs.version }}
+        run: |
+          assets=$(gh release view "v$V" --json assets --jq '.assets[].name')
+          echo "$assets" | grep -qx "Yazanaki-Client-Setup-$V.exe" || { echo "Already one installer"; exit 0; }
+          tmp=$(mktemp -d)
+          if ! echo "$assets" | grep -qx "Yazanaki-Client-Setup.exe"; then
+            gh release download "v$V" -p "Yazanaki-Client-Setup-$V.exe" -O "$tmp/Yazanaki-Client-Setup.exe"
+            gh release upload "v$V" "$tmp/Yazanaki-Client-Setup.exe"
+          fi
+          gh release download "v$V" -p latest.yml -D "$tmp"
+          sed -E -i "s#^([ -]*url|path): Yazanaki-Client-Setup[^ /]*\.exe\$#\1: Yazanaki-Client-Setup.exe#" "$tmp/latest.yml"
+          gh release upload "v$V" "$tmp/latest.yml" --clobber
       - name: In-client updates (updater/latest.yml)
         if: inputs.track == 'updater' || inputs.track == 'both'
         env:
@@ -79,7 +95,7 @@ jobs:
           # names in latest.yml full links to the release's assets.
           base="https://github.com/$GITHUB_REPOSITORY/releases/download/v$V/"
           mkdir -p updater
-          sed -E "s#^([ -]*url|path): (Yazanaki-Client-Setup-[^ ]+)\$#\1: $base\2#" "$tmp/latest.yml" > updater/latest.yml
+          sed -E "s#^([ -]*url|path): (Yazanaki-Client-Setup[^ /]*\.exe)\$#\1: $base\2#" "$tmp/latest.yml" > updater/latest.yml
           grep -q "$base" updater/latest.yml || { echo "::error::No installer file in latest.yml"; exit 1; }
           git add updater/latest.yml
           if git diff --cached --quiet; then echo "updater already on $V"; exit 0; fi
@@ -94,6 +110,16 @@ jobs:
         run: |
           gh release edit "v$V" --latest
           echo "The installer download now gives out **$V**." >> "$GITHUB_STEP_SUMMARY"
+      - name: Drop the versioned installer
+        # Once installed clients no longer download it (updater/latest.yml).
+        env:
+          V: ${{ steps.rel.outputs.version }}
+        run: |
+          git pull -q origin main
+          if grep -q "Yazanaki-Client-Setup-$V.exe" updater/latest.yml 2>/dev/null; then
+            echo "In-client updates still use Yazanaki-Client-Setup-$V.exe, keeping it"; exit 0
+          fi
+          gh release delete-asset "v$V" "Yazanaki-Client-Setup-$V.exe" --yes 2>/dev/null || true
       - name: Delete older releases
         # Keeps only what is in use: the version installed clients update to
         # (updater/latest.yml), the release behind the download link (Latest)
