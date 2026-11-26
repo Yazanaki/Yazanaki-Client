@@ -6,7 +6,9 @@
 # in the AUTO_PROMOTE repository variable (default "both": installed clients
 # update right away AND the download link gives it out, so the older releases
 # get deleted; "updater", "installer" or "none" also work) and deletes the
-# branch.
+# branch. Last, it posts the version's changes (installer/changelog.json) to
+# Discord through the DISCORD_WEBHOOK_URL repository secret, with a button
+# that downloads the installer straight away.
 #
 # Two tracks, moved separately by the Promote workflow:
 #   updater   - updater/latest.yml on main, which installed clients read.
@@ -30,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.find.outputs.version }}
+      new: ${{ steps.create.outputs.new }}
+      notes: ${{ steps.find.outputs.notes }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -49,16 +53,29 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "exe=$exe" >> "$GITHUB_OUTPUT"
           echo "sha=$(sha256sum "$exe" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          # The changes for Discord and the release page (client 0.19.5 and later).
+          notes=false
+          if [ -f installer/changelog.json ]; then
+            grep -q "\"version\": \"$version\"" installer/changelog.json || { echo "::error::installer/changelog.json is not for $version"; exit 1; }
+            notes=true
+          fi
+          echo "notes=$notes" >> "$GITHUB_OUTPUT"
       - name: Create release (not Latest)
+        id: create
         env:
           VERSION: ${{ steps.find.outputs.version }}
           EXE: ${{ steps.find.outputs.exe }}
           SHA: ${{ steps.find.outputs.sha }}
         run: |
-          files=("$EXE" installer/latest.yml)
+          # Also under a name without the version, so
+          # releases/latest/download/Yazanaki-Client-Setup.exe always gives the
+          # newest installer (the Discord button links there).
+          cp "$EXE" Yazanaki-Client-Setup.exe
+          files=("$EXE" installer/latest.yml Yazanaki-Client-Setup.exe)
           if gh release view "v$VERSION" >/dev/null 2>&1; then
-            # A re-push of the same version replaces its files.
+            # A re-push of the same version replaces its files (and is not announced again).
             gh release upload "v$VERSION" "${files[@]}" --clobber
+            echo "new=false" >> "$GITHUB_OUTPUT"
           else
             cat > notes.md <<NOTES
           Windows installer for the Yazanaki Client.
@@ -68,10 +85,21 @@ jobs:
 
           SHA-256: \`$SHA\`
           NOTES
+            if [ -f installer/changelog.json ]; then
+              { echo; echo "## What changed"; echo; node .github/scripts/discord-announce.js installer/changelog.json --markdown; } >> notes.md
+            fi
             # The tag points at main so the installer commit can go with the branch.
             gh release create "v$VERSION" "${files[@]}" --target main --latest=false \
               --title "Yazanaki Client $VERSION" --notes-file notes.md
+            echo "new=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Keep the changes for the Discord post
+        if: steps.find.outputs.notes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: installer/changelog.json
+          retention-days: 30
       - name: Delete the release branch
         run: git push origin --delete "$GITHUB_REF_NAME" || true
 
@@ -82,3 +110,39 @@ jobs:
     with:
       version: ${{ needs.stage.outputs.version }}
       track: ${{ vars.AUTO_PROMOTE || 'both' }}
+
+  announce:
+    # After promote, so the download button already gives out this version.
+    # Only for a new version that came with changes. If the secret was
+    # missing, add it and use "Re-run failed jobs" on this run.
+    needs: [stage, promote]
+    if: >-
+      always() && needs.stage.result == 'success'
+      && needs.stage.outputs.new == 'true' && needs.stage.outputs.notes == 'true'
+      && needs.promote.result != 'failure' && needs.promote.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          sparse-checkout: .github/scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: changelog
+      - name: Post to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ needs.stage.outputs.version }}
+          TRACK: ${{ vars.AUTO_PROMOTE || 'both' }}
+          PROMOTED: ${{ needs.promote.result }}
+          REPO: ${{ github.repository }}
+        run: |
+          # The newest-installer link when this version is now the download,
+          # otherwise this version's own installer.
+          if [ "$PROMOTED" = success ] && { [ "$TRACK" = both ] || [ "$TRACK" = installer ]; }; then
+            url="https://github.com/$REPO/releases/latest/download/Yazanaki-Client-Setup.exe"
+          else
+            url="https://github.com/$REPO/releases/download/v$VERSION/Yazanaki-Client-Setup-$VERSION.exe"
+          fi
+          node .github/scripts/discord-announce.js changelog.json "$url"
+          echo "Posted **$VERSION** to Discord." >> "$GITHUB_STEP_SUMMARY"
