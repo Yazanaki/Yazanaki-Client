@@ -93,13 +93,26 @@ jobs:
               --title "Yazanaki Client $VERSION" --notes-file notes.md
             echo "new=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Keep the changes for the Discord post
-        if: steps.find.outputs.notes == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: changelog
-          path: installer/changelog.json
-          retention-days: 30
+      - name: Keep the changes in changelog/<version>.json on main
+        # The Announce workflow reads them from there, also to post again later.
+        if: steps.find.outputs.notes == 'true' && steps.create.outputs.new == 'true'
+        env:
+          VERSION: ${{ steps.find.outputs.version }}
+        run: |
+          cp installer/changelog.json "$RUNNER_TEMP/changelog.json"
+          git fetch -q origin main
+          git checkout -q -B changelog-main origin/main
+          mkdir -p changelog
+          cp "$RUNNER_TEMP/changelog.json" "changelog/$VERSION.json"
+          git add "changelog/$VERSION.json"
+          git diff --cached --quiet && exit 0
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Changelog: $VERSION"
+          for i in 1 2 3; do
+            git push -q origin HEAD:main && exit 0
+            sleep 5; git pull -q --rebase origin main
+          done
+          echo "::error::Could not push changelog/$VERSION.json to main"; exit 1
       - name: Delete the release branch
         run: git push origin --delete "$GITHUB_REF_NAME" || true
 
@@ -120,29 +133,7 @@ jobs:
       always() && needs.stage.result == 'success'
       && needs.stage.outputs.new == 'true' && needs.stage.outputs.notes == 'true'
       && needs.promote.result != 'failure' && needs.promote.result != 'cancelled'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          sparse-checkout: .github/scripts
-      - uses: actions/download-artifact@v4
-        with:
-          name: changelog
-      - name: Post to Discord
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          VERSION: ${{ needs.stage.outputs.version }}
-          TRACK: ${{ vars.AUTO_PROMOTE || 'both' }}
-          PROMOTED: ${{ needs.promote.result }}
-          REPO: ${{ github.repository }}
-        run: |
-          # The newest-installer link when this version is now the download,
-          # otherwise this version's own installer.
-          if [ "$PROMOTED" = success ] && { [ "$TRACK" = both ] || [ "$TRACK" = installer ]; }; then
-            url="https://github.com/$REPO/releases/latest/download/Yazanaki-Client-Setup.exe"
-          else
-            url="https://github.com/$REPO/releases/download/v$VERSION/Yazanaki-Client-Setup-$VERSION.exe"
-          fi
-          node .github/scripts/discord-announce.js changelog.json "$url"
-          echo "Posted **$VERSION** to Discord." >> "$GITHUB_STEP_SUMMARY"
+    uses: ./.github/workflows/announce.yml
+    with:
+      version: ${{ needs.stage.outputs.version }}
+    secrets: inherit
