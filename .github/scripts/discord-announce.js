@@ -26,7 +26,7 @@ const TYPES = {
 };
 const GOLD = 0xf2c14e;
 const ASSETS = 'https://raw.githubusercontent.com/Yazanaki/YZNKI-Client-Releases/main/assets';
-const ICON = `${ASSETS}/discord-icon.png`;     // the black Yazanaki emblem
+const ICON = `${ASSETS}/discord-emblem-gold.png`; // the gold Yazanaki emblem, transparent
 const BANNER = `${ASSETS}/discord-banner.png`; // the YAZANAKI lettering
 const DESCRIPTION_MAX = 4096;                  // Discord's embed description limit
 

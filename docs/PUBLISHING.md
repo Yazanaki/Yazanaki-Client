@@ -64,7 +64,7 @@ repository secret, name `DISCORD_WEBHOOK_URL`, value the channel's webhook
 link (Discord: channel settings > Integrations > Webhooks > Copy Webhook URL).
 The link stays in the secret and never goes into this repository.
 
-The emblem (`assets/discord-icon.png`) is the webhook's picture and the
+The gold emblem (`assets/discord-emblem-gold.png`, transparent) is the webhook's picture and the
 embed's thumbnail; `assets/discord-banner.png` is the banner. If Discord
 refuses the button (some webhooks can't send them), the post goes out again
 with a **Download the installer** link inside the embed instead.
