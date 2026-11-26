@@ -1,0 +1,15 @@
+{
+  "version": "0.19.5",
+  "date": "2026-11-26",
+  "summary": "Each update is now announced in the Yazanaki Discord with a list of every change and a button to download the installer.",
+  "changes": [
+    {
+      "type": "launcher",
+      "title": "Updates are announced in Discord",
+      "points": [
+        "Every release is posted in the Yazanaki Discord with each change listed, the version number and a Download button for the installer.",
+        "The download button always gives out the newest installer, so it keeps working on older announcements."
+      ]
+    }
+  ]
+}

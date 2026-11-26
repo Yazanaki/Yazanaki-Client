@@ -1,0 +1,61 @@
+# Posts a version's changes to the Yazanaki Discord (see
+# .github/scripts/discord-announce.js): an embed with each change, the
+# version in the footer and a Download button straight to the installer.
+# Stage release calls it for every new version. Run it by hand (Actions >
+# Announce > Run workflow) to post a version again, e.g. after changing the
+# layout or adding the DISCORD_WEBHOOK_URL secret.
+# The changes come from changelog/<version>.json on main.
+name: Announce
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to announce (e.g. 0.19.5). Empty = the newest release.
+        required: false
+        default: ''
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  announce:
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          sparse-checkout: |
+            .github/scripts
+            changelog
+      - name: Post to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          v="${VERSION#v}"
+          if [ -z "$v" ]; then
+            v=$(gh release list --exclude-drafts --limit 100 --json tagName,createdAt \
+              --jq '[.[] | select(.tagName | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))] | sort_by(.createdAt) | last | .tagName')
+            v="${v#v}"
+          fi
+          file="changelog/$v.json"
+          [ -f "$file" ] || { echo "::error::There is no $file on main, so there is nothing to post for $v"; exit 1; }
+          # The newest-installer link when this version is the download
+          # (Latest release), otherwise this version's own installer.
+          latest=$(gh release view --json tagName --jq .tagName 2>/dev/null || true)
+          if [ "$latest" = "v$v" ]; then
+            url="https://github.com/$GITHUB_REPOSITORY/releases/latest/download/Yazanaki-Client-Setup.exe"
+          else
+            url="https://github.com/$GITHUB_REPOSITORY/releases/download/v$v/Yazanaki-Client-Setup-$v.exe"
+          fi
+          node .github/scripts/discord-announce.js "$file" "$url"
+          echo "Posted **$v** to Discord." >> "$GITHUB_STEP_SUMMARY"

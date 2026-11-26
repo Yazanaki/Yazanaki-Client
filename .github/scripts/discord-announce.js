@@ -1,7 +1,8 @@
 // .github/scripts/discord-announce.js
-// Posts a new Yazanaki Client version to Discord: one embed with every change
-// as its own bullet under its type, the version in the footer, and a
-// Download button that links straight to the installer .exe.
+// Posts a new Yazanaki Client version to Discord: one embed with each change
+// as a heading (a one-line description) with its type underneath in small
+// text and its details as a bullet list, the Yazanaki banner, the version in
+// the footer, and a Download button that links straight to the installer .exe.
 //
 //   node discord-announce.js <changelog.json> <download-url>       posts it
 //   node discord-announce.js <changelog.json> <download-url> --dry prints the message
@@ -11,54 +12,66 @@
 // The webhook link comes only from the DISCORD_WEBHOOK_URL environment
 // variable (a repository secret) and is never printed.
 // changelog.json is written by the client's `npm run release`:
-//   { version, date, summary, changes: [{ type, text }] }
+//   { version, date, summary, changes: [{ type, title, points: [] }] }
+// (older files have { type, text } changes: text becomes the title).
 
 const fs = require('fs');
 
-const TYPES = [
-  { type: 'cosmetics', label: 'Cosmetics', emoji: '🎨' },
-  { type: 'mods', label: 'Mods', emoji: '🧩' },
-  { type: 'yazanaki', label: 'Yazanaki Mod', emoji: '⚔️' },
-  { type: 'performance', label: 'Performance', emoji: '⚡' },
-  { type: 'launcher', label: 'Launcher', emoji: '🚀' },
-];
+const TYPES = {
+  cosmetics: 'Cosmetics',
+  mods: 'Mods',
+  yazanaki: 'Yazanaki Mod',
+  performance: 'Performance',
+  launcher: 'Launcher',
+};
 const GOLD = 0xf2c14e;
-const ICON = 'https://raw.githubusercontent.com/Yazanaki/YZNKI-Client-Releases/main/assets/emblem.png';
-const DESCRIPTION_MAX = 4096; // Discord's embed description limit
+const ASSETS = 'https://raw.githubusercontent.com/Yazanaki/YZNKI-Client-Releases/main/assets';
+const ICON = `${ASSETS}/discord-icon.png`;     // the black Yazanaki emblem
+const BANNER = `${ASSETS}/discord-banner.png`; // the YAZANAKI lettering
+const DESCRIPTION_MAX = 4096;                  // Discord's embed description limit
 
-// Discord markdown that would break a bullet or ping people is neutralised.
+// One line of plain text: no line breaks, no pings, no stray list or
+// heading markers at the start.
 function clean(text) {
-  return String(text || '').replace(/\s+/g, ' ').trim().replace(/@(everyone|here)/g, '@​$1');
+  return String(text || '').replace(/\s+/g, ' ').trim()
+    .replace(/@(everyone|here)/g, '@\u200b$1')
+    .replace(/^([#>-]|\d+\.)\s*/, '');
 }
 
-// Changes grouped by type, in TYPES order; unknown types go under Launcher.
-function groups(notes) {
-  const known = new Set(TYPES.map((t) => t.type));
-  const changes = (notes && Array.isArray(notes.changes) ? notes.changes : [])
-    .map((c) => ({ type: known.has(c && c.type) ? c.type : 'launcher', text: clean(c && c.text) }))
-    .filter((c) => c.text);
-  return TYPES.map((t) => ({ ...t, items: changes.filter((c) => c.type === t.type).map((c) => c.text) }))
-    .filter((g) => g.items.length);
+// The changes in the order the changelog lists them, cleaned. Pure.
+function changes(notes) {
+  return (notes && Array.isArray(notes.changes) ? notes.changes : []).map((c) => ({
+    label: TYPES[c && c.type] || TYPES.launcher,
+    title: clean(c && (c.title || c.text)),
+    points: (Array.isArray(c && c.points) ? c.points : []).map(clean).filter(Boolean),
+  })).filter((c) => c.title);
 }
 
-function description(notes) {
-  const parts = [];
-  if (clean(notes.summary)) parts.push(clean(notes.summary));
-  for (const g of groups(notes)) parts.push(`**${g.emoji} ${g.label}**\n${g.items.map((t) => `• ${t}`).join('\n')}`);
-  let text = parts.join('\n\n');
-  if (text.length > DESCRIPTION_MAX) text = `${text.slice(0, DESCRIPTION_MAX - 1)}…`;
-  return text;
+// One change as Discord Markdown: heading, type in small text, bullets.
+function section(c) {
+  return [`### ${c.title}`, `-# ${c.label}`, ...c.points.map((p) => `- ${p}`)].join('\n');
+}
+
+// The embed text: the summary, then every change. When it would be too long
+// for Discord, the last changes are left out and counted. Pure.
+function description(notes, max = DESCRIPTION_MAX) {
+  const summary = clean(notes.summary);
+  const parts = changes(notes).map(section);
+  const build = (n) => {
+    const shown = [summary, ...parts.slice(0, n)].filter(Boolean);
+    if (n < parts.length) shown.push(`*…and ${parts.length - n} more on the release page.*`);
+    return shown.join('\n\n');
+  };
+  let n = parts.length;
+  while (n > 0 && build(n).length > max) n--;
+  return build(n).slice(0, max);
 }
 
 // The webhook message. With `button` false (a webhook that refuses
 // components) the download link goes into the embed instead. Pure.
 function message(notes, downloadUrl, { button = true } = {}) {
   const version = notes.version;
-  let desc = description(notes);
-  if (!button) {
-    const link = `\n\n**[⬇️ Download the installer](${downloadUrl})**`;
-    desc = `${desc.slice(0, DESCRIPTION_MAX - link.length)}${link}`;
-  }
+  const link = `\n\n**[Download the installer](${downloadUrl})**`;
   const msg = {
     username: 'Yazanaki Client',
     avatar_url: ICON,
@@ -66,9 +79,10 @@ function message(notes, downloadUrl, { button = true } = {}) {
     embeds: [{
       title: `Yazanaki Client ${version}`,
       url: downloadUrl,
-      description: desc,
+      description: button ? description(notes) : `${description(notes, DESCRIPTION_MAX - link.length)}${link}`,
       color: GOLD,
       thumbnail: { url: ICON },
+      image: { url: BANNER },
       footer: { text: `Version ${version}`, icon_url: ICON },
       timestamp: new Date().toISOString(),
     }],
@@ -76,7 +90,7 @@ function message(notes, downloadUrl, { button = true } = {}) {
   if (button) {
     msg.components = [{
       type: 1,
-      components: [{ type: 2, style: 5, label: 'Download installer', emoji: { name: '⬇️' }, url: downloadUrl }],
+      components: [{ type: 2, style: 5, label: `Download Yazanaki Client`, url: downloadUrl }],
     }];
   }
   return msg;
@@ -84,7 +98,9 @@ function message(notes, downloadUrl, { button = true } = {}) {
 
 // The changes as Markdown, for the GitHub release page. Pure.
 function markdown(notes) {
-  return groups(notes).map((g) => `**${g.emoji} ${g.label}**\n${g.items.map((t) => `- ${t}`).join('\n')}`).join('\n\n');
+  return changes(notes)
+    .map((c) => [`### ${c.title}`, `*${c.label}*`, ...(c.points.length ? [''] : []), ...c.points.map((p) => `- ${p}`)].join('\n'))
+    .join('\n\n');
 }
 
 async function post(webhook, body, withComponents) {
@@ -122,4 +138,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { TYPES, groups, description, message, markdown };
+module.exports = { TYPES, changes, description, message, markdown };

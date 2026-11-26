@@ -38,26 +38,33 @@ onto the new updater.
 ## Discord announcements
 
 After a new version is staged and promoted, *Stage release* posts it to the
-Yazanaki Discord: one embed with every change as its own bullet under its
-type (Cosmetics, Mods, Yazanaki Mod, Performance, Launcher), the version in
-the footer and a **Download installer** button. The button links straight to
-the `.exe`: `releases/latest/download/Yazanaki-Client-Setup.exe`, a copy of
-the installer under a name without the version that every release also gets,
-so the button on older posts always gives out the newest installer. (When
-`AUTO_PROMOTE` leaves the installer track alone, the button links to that
-version's own `.exe` instead.) The same changes go on the release page under
-*What changed*.
+Yazanaki Discord (the *Announce* workflow): one embed with the release's
+summary, then each change as a heading (a one-line description) with its type
+(Cosmetics, Mods, Yazanaki Mod, Performance or Launcher) underneath in small
+text and its details as bullets, the Yazanaki banner at the bottom, the
+version in the footer and a **Download Yazanaki Client** button. The button
+links straight to the `.exe`: `releases/latest/download/Yazanaki-Client-Setup.exe`,
+a copy of the installer under a name without the version that every release
+also gets, so the button on older posts always gives out the newest
+installer. (When the version is not the Latest release, the button links to
+that version's own `.exe` instead.) The same changes go on the release page
+under *What changed*.
 
 The changes come from `installer/changelog.json`, which the client's
-`npm run release` writes from its `src/main/changelog.js`. A re-push of a
-version that is already released is not announced again.
+`npm run release` writes from its `src/main/changelog.js`. Stage release
+keeps them as `changelog/<version>.json` on `main`. A re-push of a version
+that is already released is not announced again.
+
+To post a version again (after a layout change, or when the secret was
+missing): Actions > **Announce** > Run workflow, enter the version (empty for
+the newest). Delete the old post in Discord yourself if you want.
 
 **One-time setup:** Settings > Secrets and variables > Actions > New
 repository secret, name `DISCORD_WEBHOOK_URL`, value the channel's webhook
 link (Discord: channel settings > Integrations > Webhooks > Copy Webhook URL).
-The link stays in the secret and never goes into this repository. If a
-release ran before the secret was there, its *announce* job fails: add the
-secret, open that run in Actions and click **Re-run failed jobs**.
+The link stays in the secret and never goes into this repository.
 
-If Discord refuses the button (some webhooks can't send them), the post goes
-out again with a **Download the installer** link inside the embed instead.
+The emblem (`assets/discord-icon.png`) is the webhook's picture and the
+embed's thumbnail; `assets/discord-banner.png` is the banner. If Discord
+refuses the button (some webhooks can't send them), the post goes out again
+with a **Download the installer** link inside the embed instead.
