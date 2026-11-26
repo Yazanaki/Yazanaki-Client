@@ -1,8 +1,8 @@
 version: 0.19.5
 files:
   - url: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.5/Yazanaki-Client-Setup-0.19.5.exe
-    sha512: nkDGSBkHMzUlDNlRBPleWn3WDakALu4PNtXXZZSmC5RglAMfa64VHR1qWs40CLdbZxOMa0mzqOt+SUdAzdEU8Q==
+    sha512: MksYq/CguFT7I+0/oB5AqP0CIez4CuLYcVM+c9OcMGwQUT95Y2+WNmMrYWlVEvE/zIyCqrJ22DB+1Dj7pnmUdg==
 path: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.5/Yazanaki-Client-Setup-0.19.5.exe
-sha512: nkDGSBkHMzUlDNlRBPleWn3WDakALu4PNtXXZZSmC5RglAMfa64VHR1qWs40CLdbZxOMa0mzqOt+SUdAzdEU8Q==
-releaseDate: '2026-11-26T04:04:27.960Z'
-yazanakiSignature: rmBEDqD4+/P7op+e0cgN7kjzO90E5VyBHNIV4lwen12WY2v19jV3QfQ3v2XcmQC7IgV/nnURX5M33/cPaxgdBQ==
+sha512: MksYq/CguFT7I+0/oB5AqP0CIez4CuLYcVM+c9OcMGwQUT95Y2+WNmMrYWlVEvE/zIyCqrJ22DB+1Dj7pnmUdg==
+releaseDate: '2026-11-26T05:28:05.433Z'
+yazanakiSignature: LasEkWj0P7b0fxxC4Hel4XxuEolUlzJFilZq2e/7fL7v/y05XtwHnjb2HnuraM38qSHMW0NjUU+IM6tLqYWgCg==
