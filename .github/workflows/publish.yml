@@ -67,20 +67,25 @@ jobs:
           EXE: ${{ steps.find.outputs.exe }}
           SHA: ${{ steps.find.outputs.sha }}
         run: |
-          # Also under a name without the version, so
+          # The release has one installer, named without the version, so
           # releases/latest/download/Yazanaki-Client-Setup.exe always gives the
-          # newest installer (the Discord button links there).
-          cp "$EXE" Yazanaki-Client-Setup.exe
-          files=("$EXE" installer/latest.yml Yazanaki-Client-Setup.exe)
+          # newest one (the Discord button links there). latest.yml is pointed
+          # at that name; its update signature covers only version and sha512.
+          mkdir -p upload
+          cp "$EXE" upload/Yazanaki-Client-Setup.exe
+          sed -E "s#^([ -]*url|path): Yazanaki-Client-Setup[^ /]*\.exe\$#\1: Yazanaki-Client-Setup.exe#" installer/latest.yml > upload/latest.yml
+          grep -q "^path: Yazanaki-Client-Setup.exe$" upload/latest.yml || { echo "::error::No installer file in latest.yml"; exit 1; }
+          files=(upload/Yazanaki-Client-Setup.exe upload/latest.yml)
           if gh release view "v$VERSION" >/dev/null 2>&1; then
             # A re-push of the same version replaces its files (and is not announced again).
             gh release upload "v$VERSION" "${files[@]}" --clobber
+            gh release delete-asset "v$VERSION" "Yazanaki-Client-Setup-$VERSION.exe" --yes 2>/dev/null || true
             echo "new=false" >> "$GITHUB_OUTPUT"
           else
             cat > notes.md <<NOTES
           Windows installer for the Yazanaki Client.
 
-          1. Download **Yazanaki-Client-Setup-$VERSION.exe** below.
+          1. Download **Yazanaki-Client-Setup.exe** below.
           2. Double-click it. If Windows says "Windows protected your PC", click **More info**, then **Run anyway**.
 
           SHA-256: \`$SHA\`

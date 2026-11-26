@@ -10,7 +10,7 @@
 
 ## Install
 
-1. **[Download the latest version](https://github.com/Yazanaki/YZNKI-Client-Releases/releases/latest)** and click **Yazanaki-Client-Setup-….exe** under *Assets* (Windows).
+1. **[Download the latest version](https://github.com/Yazanaki/YZNKI-Client-Releases/releases/latest)** and click **Yazanaki-Client-Setup.exe** under *Assets* (Windows).
 2. Open the downloaded file. If Windows says "Windows protected your PC", click **More info**, then **Run anyway**.
 3. Click **I Agree** to install, sign in with your Microsoft account, create an instance and press **Launch**.
 

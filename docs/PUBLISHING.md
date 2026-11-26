@@ -43,9 +43,9 @@ summary, then each change as a heading (a one-line description) with its type
 (Cosmetics, Mods, Yazanaki Mod, Performance or Launcher) underneath in small
 text and its details as bullets, the Yazanaki banner at the bottom, the
 version in the footer and a **Download Yazanaki Client** button. The button
-links straight to the `.exe`: `releases/latest/download/Yazanaki-Client-Setup.exe`,
-a copy of the installer under a name without the version that every release
-also gets, so the button on older posts always gives out the newest
+links straight to the `.exe`: `releases/latest/download/Yazanaki-Client-Setup.exe`.
+Each release has one installer, `Yazanaki-Client-Setup.exe` (Stage release
+renames it and points `latest.yml` at it), so the button on older posts always gives out the newest
 installer. (When the version is not the Latest release, the button links to
 that version's own `.exe` instead.) The same changes go on the release page
 under *What changed*.
