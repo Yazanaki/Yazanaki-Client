@@ -14,6 +14,10 @@ on:
         description: Version to announce (e.g. 0.19.5). Empty = the newest release.
         required: false
         default: ''
+      ping:
+        description: Ping the update role (off for a repost)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       version:
@@ -40,6 +44,9 @@ jobs:
       - name: Post to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # New releases (called by Stage release) always ping; a manual run only when ticked.
+          DISCORD_PING_ROLE: ${{ vars.DISCORD_PING_ROLE }}
+          DISCORD_PING: ${{ github.event_name != 'workflow_dispatch' || inputs.ping }}
         run: |
           v="${VERSION#v}"
           if [ -z "$v" ]; then

@@ -55,9 +55,15 @@ The changes come from `installer/changelog.json`, which the client's
 keeps them as `changelog/<version>.json` on `main`. A re-push of a version
 that is already released is not announced again.
 
+Each new release pings the update role (`PING_ROLE` in
+`.github/scripts/discord-announce.js`, or the `DISCORD_PING_ROLE` repository
+variable; `none` turns it off). The role must allow being mentioned by
+everyone, or the ping shows but notifies nobody.
+
 To post a version again (after a layout change, or when the secret was
 missing): Actions > **Announce** > Run workflow, enter the version (empty for
-the newest). Delete the old post in Discord yourself if you want.
+the newest). It only pings the role when you tick *Ping the update role*.
+Delete the old post in Discord yourself if you want.
 
 **One-time setup:** Settings > Secrets and variables > Actions > New
 repository secret, name `DISCORD_WEBHOOK_URL`, value the channel's webhook

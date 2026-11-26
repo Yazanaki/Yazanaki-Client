@@ -6,6 +6,7 @@
 //
 //   node discord-announce.js <changelog.json> <download-url>       posts it
 //   node discord-announce.js <changelog.json> <download-url> --dry prints the message
+//   DISCORD_PING=false leaves out the role ping (reposts).
 //   node discord-announce.js <changelog.json> --markdown            prints the
 //       changes as Markdown, for the GitHub release notes
 //
@@ -28,6 +29,9 @@ const GOLD = 0xf2c14e;
 const ASSETS = 'https://raw.githubusercontent.com/Yazanaki/YZNKI-Client-Releases/main/assets';
 const ICON = `${ASSETS}/discord-emblem-gold.png`; // the gold Yazanaki emblem, transparent
 const BANNER = `${ASSETS}/discord-banner.png`; // the YAZANAKI lettering
+// The role pinged with each announcement (DISCORD_PING_ROLE overrides it,
+// "none" turns the ping off).
+const PING_ROLE = '1575361740584001547';
 const DESCRIPTION_MAX = 4096;                  // Discord's embed description limit
 
 // One line of plain text: no line breaks, no pings, no stray list or
@@ -69,13 +73,14 @@ function description(notes, max = DESCRIPTION_MAX) {
 
 // The webhook message. With `button` false (a webhook that refuses
 // components) the download link goes into the embed instead. Pure.
-function message(notes, downloadUrl, { button = true } = {}) {
+function message(notes, downloadUrl, { button = true, role = null } = {}) {
   const version = notes.version;
   const link = `\n\n**[Download the installer](${downloadUrl})**`;
   const msg = {
     username: 'Yazanaki Client',
     avatar_url: ICON,
-    allowed_mentions: { parse: [] },
+    ...(role ? { content: `<@&${role}>` } : {}),
+    allowed_mentions: { parse: [], roles: role ? [role] : [] },
     embeds: [{
       title: `Yazanaki Client ${version}`,
       url: downloadUrl,
@@ -115,17 +120,19 @@ async function main() {
   if (!/^\d+\.\d+\.\d+$/.test(notes.version || '')) throw new Error(`${file} has no valid version`);
   if (second === '--markdown') return void process.stdout.write(`${markdown(notes)}\n`);
   if (!/^https:\/\//.test(second || '')) throw new Error('Pass the installer download URL');
-  if (flag === '--dry') return void console.log(JSON.stringify(message(notes, second), null, 2));
+  const roleSetting = (process.env.DISCORD_PING_ROLE || PING_ROLE).trim();
+  const role = process.env.DISCORD_PING === 'false' || !/^\d+$/.test(roleSetting) ? null : roleSetting;
+  if (flag === '--dry') return void console.log(JSON.stringify(message(notes, second, { role }), null, 2));
 
   const webhook = (process.env.DISCORD_WEBHOOK_URL || '').trim();
   if (!/^https:\/\/(discord|discordapp)\.com\/api\/webhooks\/\d+\/[\w-]+$/.test(webhook)) {
     throw new Error('DISCORD_WEBHOOK_URL is not set (or not a Discord webhook link). Add it under Settings > Secrets and variables > Actions, then re-run this job.');
   }
-  let r = await post(webhook, message(notes, second), true);
+  let r = await post(webhook, message(notes, second, { role }), true);
   if (!r.ok && r.status === 400) {
     // Some webhooks refuse buttons: post again with the link in the embed.
     console.log(`Discord refused the button (${r.text.slice(0, 200)}). Posting with a download link instead.`);
-    r = await post(webhook, message(notes, second, { button: false }), false);
+    r = await post(webhook, message(notes, second, { button: false, role }), false);
   }
   if (!r.ok) throw new Error(`Discord answered ${r.status}: ${r.text.slice(0, 300)}`);
   console.log(`Posted ${notes.version} to Discord.`);
