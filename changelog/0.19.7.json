@@ -1,0 +1,16 @@
+{
+  "version": "0.19.7",
+  "date": "2026-11-26",
+  "summary": "Image previews from chat links now really show on top of the chat, and Ctrl only offers a next image when there is another one.",
+  "changes": [
+    {
+      "type": "mods",
+      "title": "Chat image previews show on top of the chat",
+      "points": [
+        "With chat open, the preview of an image link is drawn over the chat lines instead of behind them.",
+        "A long link that wraps over several lines counts as one image, so \"1/2 Ctrl: next\" no longer shows for a single picture.",
+        "Links that fail to load are skipped while another image on the line works."
+      ]
+    }
+  ]
+}
