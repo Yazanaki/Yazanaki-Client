@@ -50,6 +50,12 @@ installer. (When the version is not the Latest release, the button links to
 that version's own `.exe` instead.) The same changes go on the release page
 under *What changed*.
 
+When several versions go out as one release (main moved from 0.19.8 to
+0.19.11 before the next build), each version gets its own embed in the same
+message, oldest first, with one ping and one Download button (Discord allows
+10 embeds and 6000 characters per message, so very long notes get shortened
+with a pointer to the release page). The release page lists every version too.
+
 The changes come from `installer/changelog.json`, which the client's
 `npm run release` writes from its `src/main/changelog.js`. Stage release
 keeps them as `changelog/<version>.json` on `main`. A re-push of a version

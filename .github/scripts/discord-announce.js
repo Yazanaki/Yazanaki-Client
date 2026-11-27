@@ -13,7 +13,8 @@
 // The webhook link comes only from the DISCORD_WEBHOOK_URL environment
 // variable (a repository secret) and is never printed.
 // changelog.json is written by the client's `npm run release`:
-//   { version, date, summary, changes: [{ type, title, points: [] }] }
+//   { version, date, summary, changes: [{ type, title, points: [] }],
+//     previous: [same shape, newest first] }  (versions released together with it)
 // (older files have { type, text } changes: text becomes the title).
 
 const fs = require('fs');
@@ -33,6 +34,8 @@ const BANNER = `${ASSETS}/discord-banner.png`; // the YAZANAKI lettering
 // "none" turns the ping off).
 const PING_ROLE = '1575361740584001547';
 const DESCRIPTION_MAX = 4096;                  // Discord's embed description limit
+const TOTAL_MAX = 6000;                        // all embeds of one message together
+const MAX_EMBEDS = 10;                         // embeds per message
 
 // One line of plain text: no line breaks, no pings, no stray list or
 // heading markers at the start.
@@ -71,41 +74,67 @@ function description(notes, max = DESCRIPTION_MAX) {
   return build(n).slice(0, max);
 }
 
-// The webhook message. With `button` false (a webhook that refuses
-// components) the download link goes into the embed instead. Pure.
+// Every version this release covers, oldest first: the skipped versions in
+// `previous` (released together with this one), then this one. Pure.
+function versions(notes) {
+  const previous = Array.isArray(notes.previous) ? notes.previous.filter((n) => n && n.version) : [];
+  return [...previous.slice(0, MAX_EMBEDS - 1).reverse(), notes];
+}
+
+// The webhook message: one embed per version (oldest first, the banner under
+// the newest), one role ping and one Download button for all of them. With
+// `button` false (a webhook that refuses components) the download link goes
+// into the newest embed instead. Pure.
 function message(notes, downloadUrl, { button = true, role = null } = {}) {
-  const version = notes.version;
+  const all = versions(notes);
   const link = `\n\n**[Download the installer](${downloadUrl})**`;
+  // Discord allows 6000 characters over all embeds of a message.
+  const each = Math.min(DESCRIPTION_MAX, Math.floor(TOTAL_MAX / all.length) - 120);
+  const now = new Date().toISOString();
+  const embeds = all.map((n, i) => {
+    const newest = i === all.length - 1;
+    const withLink = newest && !button;
+    return {
+      title: `Yazanaki Client ${n.version}`,
+      // Only the newest links: embeds sharing a link get merged by Discord.
+      ...(newest ? { url: downloadUrl } : {}),
+      description: withLink ? `${description(n, each - link.length)}${link}` : description(n, each),
+      color: GOLD,
+      thumbnail: { url: ICON },
+      ...(newest ? { image: { url: BANNER } } : {}),
+      footer: { text: `Version ${n.version}`, icon_url: ICON },
+      timestamp: now,
+    };
+  });
   const msg = {
     username: 'Yazanaki Client',
     avatar_url: ICON,
     ...(role ? { content: `<@&${role}>` } : {}),
     allowed_mentions: { parse: [], roles: role ? [role] : [] },
-    embeds: [{
-      title: `Yazanaki Client ${version}`,
-      url: downloadUrl,
-      description: button ? description(notes) : `${description(notes, DESCRIPTION_MAX - link.length)}${link}`,
-      color: GOLD,
-      thumbnail: { url: ICON },
-      image: { url: BANNER },
-      footer: { text: `Version ${version}`, icon_url: ICON },
-      timestamp: new Date().toISOString(),
-    }],
+    embeds,
   };
   if (button) {
     msg.components = [{
       type: 1,
-      components: [{ type: 2, style: 5, label: `Download Yazanaki Client`, url: downloadUrl }],
+      components: [{ type: 2, style: 5, label: 'Download Yazanaki Client', url: downloadUrl }],
     }];
   }
   return msg;
 }
 
-// The changes as Markdown, for the GitHub release page. Pure.
-function markdown(notes) {
+// The changes as Markdown, for the GitHub release page; versions released
+// together with this one follow under their own heading. Pure.
+function sectionsMarkdown(notes) {
   return changes(notes)
     .map((c) => [`### ${c.title}`, `*${c.label}*`, ...(c.points.length ? [''] : []), ...c.points.map((p) => `- ${p}`)].join('\n'))
     .join('\n\n');
+}
+
+function markdown(notes) {
+  const previous = versions(notes).slice(0, -1).reverse();
+  if (!previous.length) return sectionsMarkdown(notes);
+  return [`## ${notes.version}`, sectionsMarkdown(notes),
+    ...previous.flatMap((n) => [`## ${n.version}`, sectionsMarkdown(n)])].join('\n\n');
 }
 
 async function post(webhook, body, withComponents) {
@@ -145,4 +174,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { TYPES, changes, description, message, markdown };
+module.exports = { TYPES, changes, description, versions, message, markdown };
