@@ -1,8 +1,8 @@
-version: 0.19.8
+version: 0.19.11
 files:
-  - url: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.8/Yazanaki-Client-Setup.exe
-    sha512: Mk1G7viVxaBj/HIrFwL9YTbJxYAp/2sHslLdrhWiFCUjuVdcXsy9tCp7NVtlDZTAiJvjMcaQ1Qbk45fFdHSmUg==
-path: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.8/Yazanaki-Client-Setup.exe
-sha512: Mk1G7viVxaBj/HIrFwL9YTbJxYAp/2sHslLdrhWiFCUjuVdcXsy9tCp7NVtlDZTAiJvjMcaQ1Qbk45fFdHSmUg==
-releaseDate: '2026-11-27T00:38:46.675Z'
-yazanakiSignature: xMNgwf0wc0jW6lXMZxaxAQFiFyGxfAnA4krwn6jeFJNAwAvqNcc8lpO15KFVlhxorz8xWPrXicQ1mOS6Nvz1Cg==
+  - url: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.11/Yazanaki-Client-Setup.exe
+    sha512: Msuqlst0ITWIM/7hiCseIdcIecsMYgeY2p7GOqLT2ZqYKfL95Z5qNoX0Cw48SBv9mEpOyDheIwp4Cnbec2Ocyg==
+path: https://github.com/Yazanaki/Yazanaki-Client/releases/download/v0.19.11/Yazanaki-Client-Setup.exe
+sha512: Msuqlst0ITWIM/7hiCseIdcIecsMYgeY2p7GOqLT2ZqYKfL95Z5qNoX0Cw48SBv9mEpOyDheIwp4Cnbec2Ocyg==
+releaseDate: '2026-11-27T03:37:15.787Z'
+yazanakiSignature: 7chkBRkuJ9N8NJ744OKqTeIDq4us4CUUIsWVq8tyVWEWyNY1qv37M3O2+LmUT+Cf4awuzAIxa29+VD+foWo7DA==
