@@ -1,0 +1,15 @@
+{
+  "version": "0.19.11",
+  "date": "2026-11-27",
+  "summary": "You can now choose whether the map keeps mapping the surface while you are in caves.",
+  "changes": [
+    {
+      "type": "yazanaki",
+      "title": "Choose whether the surface is mapped while underground",
+      "points": [
+        "New Cartography setting \"Map the surface while underground\", on by default: the surface keeps being mapped while you are in caves, like JourneyMap.",
+        "Fake flat land that some servers send while you are underground is still left off the map. Turn it off to keep the surface map exactly as it was until you are back on top."
+      ]
+    }
+  ]
+}
