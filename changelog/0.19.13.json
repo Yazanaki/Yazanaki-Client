@@ -1,0 +1,32 @@
+{
+  "version": "0.19.13",
+  "date": "2026-11-28",
+  "summary": "Empire activity on Home grows with the launcher window, so a bigger or fullscreen launcher shows more news at once.",
+  "changes": [
+    {
+      "type": "launcher",
+      "title": "Empire activity fills a bigger window",
+      "points": [
+        "When the launcher is taller, for example fullscreen, the Empire activity columns grow and show more news without scrolling.",
+        "Each column now loads up to 20 items instead of 6, so there is more to scroll through."
+      ]
+    }
+  ],
+  "previous": [
+    {
+      "version": "0.19.12",
+      "date": "2026-11-27",
+      "summary": "Client updates on the Home news now show when they were really released, instead of \"just now\".",
+      "changes": [
+        {
+          "type": "launcher",
+          "title": "Update news shows the real release time",
+          "points": [
+            "Each \"Client update\" in the Everyone news is dated by when it was actually published.",
+            "Updates that came out together with a later one show that release's time."
+          ]
+        }
+      ]
+    }
+  ]
+}
